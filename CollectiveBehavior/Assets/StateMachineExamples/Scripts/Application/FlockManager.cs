@@ -12,6 +12,10 @@ public class FlockManager : MonoBehaviour
     [SerializeField] private float _rangeZ = 10f;
 
     [SerializeField] private int _flockCount = 100;
+    [SerializeField] float _traceRate = 10f;
+    [SerializeField] Transform _tracePrefab;
+
+    public  Transform TraceHolder;
 
     [Header( " FlockParameter")]
     public float _maxSpeed = 20f;
@@ -22,9 +26,13 @@ public class FlockManager : MonoBehaviour
     public float _flockSpeed = 1f;
     public float _updateRate = 50f;
 
+    float _timer = 0;
     bool _playing = true;
+    bool _trace;
 
     private List<Vector3> _savedPositions;
+
+    List<Transform> _traceList;
 
     private Dictionary<Transform, Vector3> _positionDic;
     private Dictionary<Transform, Quaternion> _rotationDic;
@@ -42,6 +50,7 @@ public class FlockManager : MonoBehaviour
     {
 
         CreateFlock();
+        _traceList = new List<Transform>();
     }
 
     void CreateFlock()
@@ -133,12 +142,41 @@ public class FlockManager : MonoBehaviour
 
                 ai.UpdateFlock(this);
             }
+            if (Time.time > _timer + _traceRate && _trace)
+            {
+                foreach (var a in _flock)
+                {
+                    
+                    var t = Instantiate(_tracePrefab, TraceHolder);
+                    t.transform.position = a.transform.position;
+                    t.rotation = a.transform.rotation;
+                    var s = t.localScale;
+                    s.z = _traceRate * 15f;
+                    t.localScale = s;
+                   // t.GetComponent<MeshRenderer>().material.color = a.GetComponent<MeshRenderer>().material.color;
+                    _traceList.Add(t);
+                }
+                _timer = Time.time;
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             SwitchPlay();
         }
-     
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            _trace = !_trace;
+        }
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            foreach(var a in _flock)
+            {
+                a.GetComponent<MeshRenderer>().enabled = !a.GetComponent<MeshRenderer>().enabled;
+            }
+        }
+
+
     }
 }
