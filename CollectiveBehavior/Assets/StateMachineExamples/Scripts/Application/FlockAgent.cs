@@ -9,9 +9,13 @@ public class FlockAgent : MonoBehaviour
 
     Vector3 toAvoid = Vector3.zero;
 
+  
+
     public Color lookColor = Color.green;
 
-    List<Transform> _sameType;
+   
+
+    int linePointIndex = 0;
 
     bool flocking;
     public bool IsFlocking()
@@ -28,10 +32,9 @@ public class FlockAgent : MonoBehaviour
         return direction;
     }
 
-    private void Start()
-    {
-        _sameType = new List<Transform>();
-    }
+    
+
+   
 
 
     BlockTypes _type;
@@ -153,7 +156,7 @@ public class FlockAgent : MonoBehaviour
         }
         if (groupSize > 0)
         {
-            centre = (centre) / groupSize+(manager.GetGoalPos(this));
+            centre = (centre) / groupSize+ (manager.GetGoalPos(this))+manager.GetTarget(this);
             _speed = fSpeed / groupSize;
 
             Vector3 dir = (centre + avoid) - transform.position+(-toAvoid);
@@ -161,9 +164,6 @@ public class FlockAgent : MonoBehaviour
             if (dir != Vector3.zero)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), manager._flockSpeed * Time.deltaTime);
-                //if (fDirection != 0)
-                //    direction = fDirection / Mathf.Abs(fDirection);
-
                 flocking = true;
                 Debug.DrawRay(transform.position, dir.normalized * manager._lookRange * 2f, Color.red);
             }
@@ -183,6 +183,15 @@ public class FlockAgent : MonoBehaviour
         {
             _speed = Random.Range(manager._minSpeed, manager._maxSpeed);
         }
+    }
+
+  public  void DrawLine(Vector3 point)
+    {
+        var line = GetComponent<LineRenderer>();
+        line.positionCount = linePointIndex + 1;
+        line.SetPosition(linePointIndex,point);
+
+        linePointIndex++;
     }
 
   

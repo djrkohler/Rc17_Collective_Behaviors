@@ -14,6 +14,13 @@ public class FlockManager : MonoBehaviour
     [SerializeField] private int _flockCount = 100;
     [SerializeField] float _traceRate = 10f;
     [SerializeField] Transform _tracePrefab;
+    [SerializeField] Transform _goal;
+    [SerializeField] float _targetSwitchRate = 3f;
+
+    float _targetTimer;
+    List<Vector3> _goalPosition;
+
+    int _currentGoal = 0;
 
     public  Transform TraceHolder;
 
@@ -51,6 +58,45 @@ public class FlockManager : MonoBehaviour
 
         CreateFlock();
         _traceList = new List<Transform>();
+        _goalPosition = new List<Vector3>();
+    }
+
+    void AddGoalPosition()
+    {
+        var x = UnityEngine.Random.Range(-_rangeX, _rangeX);
+        var y = UnityEngine.Random.Range(-_rangeY, _rangeY);
+        var z = UnityEngine.Random.Range(-_rangeZ, _rangeZ);
+
+        _goalPosition.Add(new Vector3(x, y, z));
+    }
+
+    void LoopGoal()
+    {
+        if (_goalPosition.Count > 0)
+        {
+            if (_currentGoal < _goalPosition.Count-1)
+            {
+                _currentGoal++;
+            }
+            else
+            {
+                _currentGoal = 0;
+            }
+
+            
+        }
+    }
+
+    public Vector3 GetTarget(FlockAgent agent)
+    {
+        if (_goalPosition.Count > 0)
+        {
+            return _goal.position-agent.transform.position;
+        }
+        else
+        {
+            return Vector3.zero;
+        }
     }
 
     void CreateFlock()
@@ -114,20 +160,13 @@ public class FlockManager : MonoBehaviour
             }
             else
             {
-                gol = a.position;
+                gol = a.position-agent.transform.position;
 
                 break;
             }
 
         }
-        if (gol == Vector3.zero)
-        {
-            return gol;
-        }
-        else
-        {
-            return gol - agent.transform.position;
-        }
+        return gol;
 
     }
 
@@ -146,19 +185,34 @@ public class FlockManager : MonoBehaviour
             {
                 foreach (var a in _flock)
                 {
-                    
-                    var t = Instantiate(_tracePrefab, TraceHolder);
-                    t.transform.position = a.transform.position;
-                    t.rotation = a.transform.rotation;
-                    var s = t.localScale;
-                    s.z = _traceRate * 15f;
-                    t.localScale = s;
-                   // t.GetComponent<MeshRenderer>().material.color = a.GetComponent<MeshRenderer>().material.color;
-                    _traceList.Add(t);
+                    var ai = a.GetComponent<FlockAgent>();
+                    // var t = Instantiate(_tracePrefab, TraceHolder);
+                    // t.transform.position = a.transform.position;
+                    // t.rotation = a.transform.rotation;
+                    // var s = t.localScale;
+                    // s.z = _traceRate * 15f;
+                    // t.localScale = s;
+                    //// t.GetComponent<MeshRenderer>().material.color = a.GetComponent<MeshRenderer>().material.color;
+                    // _traceList.Add(t);
+
+                    ai.DrawLine(a.position);
                 }
                 _timer = Time.time;
             }
+
+            if (Time.time > _targetTimer + _targetSwitchRate)
+            {
+                LoopGoal();
+
+                _targetTimer = Time.time;
+            }
+
+            if (_goalPosition.Count > 0)
+                _goal.transform.position = Vector3.Lerp(_goal.transform.position, _goalPosition[_currentGoal], Time.deltaTime * 3f);
+
         }
+
+
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
@@ -176,7 +230,9 @@ public class FlockManager : MonoBehaviour
                 a.GetComponent<MeshRenderer>().enabled = !a.GetComponent<MeshRenderer>().enabled;
             }
         }
-
-
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            AddGoalPosition();
+        }
     }
 }

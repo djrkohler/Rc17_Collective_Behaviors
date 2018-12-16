@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/StateMachineExamples/Scenes/Flocking Trace.unity
+- path: Assets/StateMachineExamples/Scenes/BlockChain.unity
   isLoaded: 1
   isActive: 1
